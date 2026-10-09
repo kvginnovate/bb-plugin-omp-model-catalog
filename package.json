@@ -2,6 +2,12 @@
   "name": "bb-plugin-omp-model-catalog",
   "version": "0.1.0",
   "type": "module",
+  "license": "MIT",
+  "author": "kvginnovate",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kvginnovate/bb-plugin-omp-model-catalog.git"
+  },
   "engines": {
     "bb": ">=0.45",
     "bbPluginSdk": ">=0.6.15"

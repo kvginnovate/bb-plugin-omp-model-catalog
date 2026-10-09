@@ -3,6 +3,19 @@
 A BB plugin that shows the live `omp` model catalog grouped by provider, with
 collapsible sections and dividers, in the composer and on the command line.
 
+## Requirements
+
+The `omp` CLI must be on `PATH` on the machine that runs the plugin. The host
+daemon shells `omp models --json` to read the catalog, so a machine without
+`omp` gets a load error rather than an empty list — the plugin never invents
+models it cannot address.
+
+The `PROVIDER_META` registry ships defaults for the providers this plugin was
+built against. It is not a whitelist: a provider that is not registered still
+renders (title-cased name, sorted last, expanded), so the plugin works against
+any `omp` catalog. Add an entry to pin a display name, sort order, or
+default-collapsed state.
+
 - `contract.ts` — the shared spine: the catalog schema, the `PROVIDER_META`
   registry, `groupModels`, `isModelFree`, and both RPC contracts. Every
   surface renders the same grouping because they all import this file.
