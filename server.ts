@@ -26,13 +26,8 @@ import {
 } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 
-import {
-  groupModels,
-  hostContract,
-  rpcContract,
-  type CatalogModel,
-  type ProviderGroup,
-} from "./contract.js";
+import { hostContract, rpcContract, type CatalogModel } from "./contract.js";
+import { groupModels, type ProviderGroup } from "./grouping.js";
 
 // ---------------------------------------------------------------------------
 // Formatting helpers — one per command, shared by the CLI and the tool.

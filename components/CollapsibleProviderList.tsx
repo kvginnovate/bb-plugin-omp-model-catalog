@@ -13,8 +13,9 @@
 // section headers are disabled because a toggle would have no visible effect.
 
 import { useMemo, type ReactNode } from "react";
-import type { CatalogModel, ProviderGroup } from "@/contract";
-import { groupModels, isModelFree } from "@/contract";
+import type { CatalogModel } from "@/contract";
+import type { ProviderGroup } from "@/grouping";
+import { groupModels, isModelFree } from "@/grouping";
 import { cn } from "@/lib/utils";
 
 /** Does one model row match the search query? */

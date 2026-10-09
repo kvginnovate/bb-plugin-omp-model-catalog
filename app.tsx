@@ -27,8 +27,9 @@ import {
   useRpc,
   type PluginRpcResult,
 } from "@get-bb/plugin-sdk/app";
-import type { CatalogModel, ProviderGroup, rpcContract } from "@/contract";
-import { isModelFree } from "@/contract";
+import type { CatalogModel, rpcContract } from "@/contract";
+import type { ProviderGroup } from "@/grouping";
+import { isModelFree } from "@/grouping";
 import {
   CollapsibleProviderList,
   filterGroups,
