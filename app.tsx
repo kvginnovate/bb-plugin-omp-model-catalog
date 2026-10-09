@@ -381,6 +381,19 @@ export default definePluginApp((app) => {
 
   app.composer.customize({
     id: "omp-model-catalog",
+    // The `+` menu is the touch-reachable entry point: the keyboard shortcut
+    // below does not exist on mobile, and composer `actions` are not mounted
+    // in compact layout. Host-rendered, so mobile layout stays correct.
+    plusMenu: [
+      {
+        id: "omp-model-catalog-plus",
+        label: "Model catalog",
+        description: "Browse omp models grouped by provider.",
+        run: ({ composer }) => {
+          composer.experimental_openPopup("omp-model-catalog");
+        },
+      },
+    ],
     experimental_popups: [
       {
         id: "omp-model-catalog",
