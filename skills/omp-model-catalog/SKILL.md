@@ -6,10 +6,11 @@ description: Use when the user asks which models omp can address on a machine, w
 # omp model catalog
 
 The Omp Model Catalog plugin surfaces the live `omp models --json` catalog as
-ordered provider sections. Every surface — the composer popup, the CLI, the
-agent tool, and the RPC — renders the EXACT same grouping: the host entry
+ordered provider sections. Every surface — the composer popup, the
+Settings → Plugins section, the CLI, the agent tool, and the RPC — renders the
+EXACT same grouping: the host entry
 returns raw rows, the server groups them with `groupModels`, and
-`PROVIDER_META` (in `contract.ts`) supplies each section's display name, sort
+`PROVIDER_META` (in `grouping.ts`) supplies each section's display name, sort
 order, and default-collapsed state; the `free` badge is derived from catalog
 cost by `isModelFree`.
 
@@ -63,7 +64,7 @@ and is written by the `collapsed_set` RPC, which publishes a
 
 ## Extending `PROVIDER_META`
 
-`PROVIDER_META` in `contract.ts` is the single registry. To add or re-order a
+`PROVIDER_META` in `grouping.ts` is the single registry. To add or re-order a
 provider, add one entry to the array:
 
 ```ts
@@ -80,7 +81,9 @@ and every surface picks it up without touching the host, CLI, tool, or UI:
   it unset so the badge is derived from cost (a section is free only when all
   of its models cost zero); row badges always use per-model cost.
 
-Because the registry lives in the shared contract, the CLI and the UI can
+Because the registry lives in `grouping.ts` — a pure module with no SDK
+import, so the host, server, CLI, and browser bundle all import the same
+copy — the CLI and the UI can
 never disagree about which providers exist or how they render. Extend the
 table; do not fork the render paths, and do not hard-code provider names
 elsewhere in the plugin.

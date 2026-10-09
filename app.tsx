@@ -27,6 +27,7 @@ import {
   useRpc,
   type PluginRpcResult,
 } from "@get-bb/plugin-sdk/app";
+import { toast } from "sonner";
 import type { CatalogModel, rpcContract } from "@/contract";
 import type { ProviderGroup } from "@/grouping";
 import { isModelFree } from "@/grouping";
@@ -266,11 +267,118 @@ function OmpCatalogPicker() {
   );
 }
 
+/** CatalogSettingsSection — the same grouped catalog, browsable from
+ * Settings → Plugins.
+ *
+ * This registration is also what makes the plugin appear in that list at all:
+ * BB lists a plugin there only when it declares a settings section, so a
+ * plugin whose only surface is a composer popup is otherwise invisible. A
+ * settings page has no composer to insert into, so picking a row copies the
+ * `provider/id` selector instead.
+ */
+function CatalogSettingsSection() {
+  const rpc = useRpc<typeof rpcContract>();
+
+  const [catalog, setCatalog] = useState<CatalogResult | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  const fetchCatalog = useCallback(() => {
+    rpc
+      .call("catalog")
+      .then((result) => {
+        setCatalog(result);
+        setLoadError(null);
+        const next = new Set(result.collapsed);
+        for (const group of result.groups) {
+          if (group.defaultCollapsed) next.add(group.key);
+        }
+        setCollapsed(next);
+      })
+      .catch((error: unknown) => {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Could not load the model catalog.",
+        );
+      });
+  }, [rpc]);
+
+  useEffect(() => {
+    fetchCatalog();
+  }, [fetchCatalog]);
+
+  useRealtime("catalog-changed", () => {
+    fetchCatalog();
+  });
+
+  const toggleCollapsed = useCallback(
+    (groupKey: string) => {
+      const next = new Set(collapsed);
+      if (next.has(groupKey)) next.delete(groupKey);
+      else next.add(groupKey);
+      setCollapsed(next);
+      rpc.call("collapsed_set", { collapsed: [...next] }).catch(() => {});
+    },
+    [collapsed, rpc],
+  );
+
+  const copySelector = useCallback((model: CatalogModel) => {
+    navigator.clipboard
+      .writeText(model.selector)
+      .then(() => toast.success(`Copied ${model.selector}`))
+      .catch(() => toast.error("Could not copy the selector."));
+  }, []);
+
+  const groups: ProviderGroup[] = catalog?.groups ?? [];
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Input
+        value={search}
+        placeholder="Search models"
+        aria-label="Search models"
+        onChange={(event) => setSearch(event.target.value)}
+      />
+      {catalog !== null && (
+        <p className="text-xs text-muted-foreground">
+          {totalRows(groups)} model(s) · omp {catalog.version} · select a row to
+          copy its selector
+        </p>
+      )}
+      {loadError !== null ? (
+        <p className="text-sm text-muted-foreground">{loadError}</p>
+      ) : catalog === null ? (
+        <p className="text-sm text-muted-foreground">Loading model catalog…</p>
+      ) : (
+        <CollapsibleProviderList
+          models={groups.flatMap((group) => group.models)}
+          collapsed={collapsed}
+          onToggleCollapsed={toggleCollapsed}
+          onSelectModel={copySelector}
+          searchQuery={search}
+        />
+      )}
+    </div>
+  );
+}
+
 // The default export must be definePluginApp(...); BB interprets it after
 // loading the bundle. The popup and command are registered here; the host
 // owns popup placement, dismissal, and focus restore — OmpCatalogPicker
 // owns its own content and keyboard navigation.
 export default definePluginApp((app) => {
+  // Declaring a settings section is what lists the plugin under
+  // Settings → Plugins; without it the plugin has no entry there.
+  app.slots.settingsSection({
+    id: "omp-model-catalog",
+    title: "Model catalog",
+    description:
+      "Collapsible, provider-grouped view of the live omp model catalog.",
+    component: CatalogSettingsSection,
+  });
+
   app.composer.customize({
     id: "omp-model-catalog",
     experimental_popups: [
